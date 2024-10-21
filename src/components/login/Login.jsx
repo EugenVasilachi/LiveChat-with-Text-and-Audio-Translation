@@ -26,10 +26,6 @@ export default function Login() {
     { code: "de_DE", name: "German" },
     { code: "it_IT", name: "Italian" },
     { code: "pt_XX", name: "Portuguese" },
-    { code: "ru_RU", name: "Russian" },
-    { code: "zh_CN", name: "Chinese" },
-    { code: "ja_XX", name: "Japanese" },
-    { code: "ko_KR", name: "Korean" },
     { code: "ro_RO", name: "Romanian" },
   ];
 
@@ -95,33 +91,34 @@ export default function Login() {
   };
 
   return (
-    <div className='login'>
-      <div className='item'>
+    <div className="login">
+      <div className="item">
         {isRegistering ? (
           <>
             <h2>Create an Account</h2>
             <form onSubmit={handleRegister}>
-              <label htmlFor='file'>
-                <img src={avatar.url || "./avatar.png"} alt='' />
+              <label htmlFor="file">
+                <img src={avatar.url || "./avatar.png"} alt="" />
                 Upload an image
               </label>
               <input
-                type='file'
-                id='file'
+                type="file"
+                id="file"
                 style={{ display: "none" }}
                 onChange={handleAvatar}
               />
-              <input type='text' placeholder='Username' name='username' />
-              <input type='text' placeholder='Email' name='email' />
-              <input type='password' placeholder='Password' name='password' />
+              <input type="text" placeholder="Username" name="username" />
+              <input type="text" placeholder="Email" name="email" />
+              <input type="password" placeholder="Password" name="password" />
 
               {/* Language Select Dropdown */}
               <select
-                name='language'
+                name="language"
                 value={selectedLanguage}
                 onChange={handleLanguageChange}
-                required>
-                <option value='' disabled>
+                required
+              >
+                <option value="" disabled>
                   -- Select Your Language --
                 </option>
                 {languages.map(({ code, name }) => (
@@ -138,9 +135,10 @@ export default function Login() {
             <p>
               Already registered?{" "}
               <button
-                type='button'
+                type="button"
                 onClick={() => setIsRegistering(false)}
-                className='link-button'>
+                className="link-button"
+              >
                 Sign in here
               </button>
             </p>
@@ -149,8 +147,8 @@ export default function Login() {
           <>
             <h2>Welcome back</h2>
             <form onSubmit={handleLogin}>
-              <input type='text' placeholder='Email' name='email' />
-              <input type='password' placeholder='Password' name='password' />
+              <input type="text" placeholder="Email" name="email" />
+              <input type="password" placeholder="Password" name="password" />
               <button disabled={loading}>
                 {loading ? "Loading" : "Sign in"}
               </button>
@@ -158,9 +156,10 @@ export default function Login() {
             <p>
               Not registered?{" "}
               <button
-                type='button'
+                type="button"
                 onClick={() => setIsRegistering(true)}
-                className='link-button'>
+                className="link-button"
+              >
                 Sign up here
               </button>
             </p>
