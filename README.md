@@ -1,6 +1,6 @@
 # Live Chat Audio Translation App
 
-This app enables real-time audio message translation using OpenAI’s ChatGPT for text translation, Firebase for storing and retrieving audio files, and a React frontend for user interaction.
+This app enables real-time audio message translation using OpenAI’s ChatGPT for text translation, Whisper for speech-to-text and text-to-speech Firebase for storing and retrieving audio files, and a React frontend for user interaction.
 
 ![chat](./public/chat.png)
 
