@@ -33,7 +33,7 @@ def translate_audio():
     target_lang = request.form.get("target_lang", "ro")
     receiver_id = request.form.get("receiver_id")
     sender_id = request.form.get("sender_id")
-    chat_id = request.form.get("chat_id")  # Adăugați chatId
+    chat_id = request.form.get("chat_id")
 
     if not url:
         return jsonify({"error": "No file URL provided"}), 400
@@ -44,31 +44,23 @@ def translate_audio():
     if not saved_path:
         return jsonify({"error": "Failed to download audio file"}), 500
 
-    # Convert speech to text
     text = speach_to_text(saved_path)
 
-    # Translate text
     translated_text = translate_text(text, source_lang, target_lang)
 
-    # Convert translated text back to speech
     speech_file_path = text_to_speach(translated_text)
 
-    # Generate a unique file name using UUID
     unique_file_name = f"translated_audio_{uuid.uuid4()}.mp3"
 
-    # Upload the translated audio file to Firebase and get the public URL
     public_url = upload_audio_to_firebase(speech_file_path, unique_file_name)
 
-    # Save metadata to Firestore
     created_at = datetime.datetime.now()
     save_audio_metadata_to_firestore(
         public_url, created_at, receiver_id, sender_id, text, translated_text, chat_id
     )
 
-    # Return the public URL of the translated audio file to the user
     return jsonify({"audio_url": public_url}), 200
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-

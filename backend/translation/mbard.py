@@ -5,7 +5,6 @@ from transformers import (
     MBart50Tokenizer,
 )
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -16,11 +15,7 @@ class MBartTranslator:
         self.model, self.tokenizer = self.load_model_and_tokenizer()
 
     def load_model_and_tokenizer(self):
-        """
-        Loads the mBART model and tokenizer.
-        """
         try:
-            # Load model and tokenizer
             tokenizer = MBart50Tokenizer.from_pretrained(self.model_name)
             model = MBartForConditionalGeneration.from_pretrained(self.model_name)
             logger.info("Successfully loaded mBART model and tokenizer.")
@@ -46,13 +41,10 @@ class MBartTranslator:
         # Set the source language for the tokenizer
         self.tokenizer.src_lang = source_lang
 
-        # Tokenize the input text
         encoded_input = self.tokenizer(text, return_tensors="pt")
 
-        # Set the target language ID
         forced_bos_token_id = self.tokenizer.lang_code_to_id[target_lang]
 
-        # Generate the translation
         try:
             output = self.model.generate(
                 **encoded_input,
@@ -61,7 +53,6 @@ class MBartTranslator:
                 num_beams=num_beams,
                 early_stopping=True,
             )
-            # Decode the output
             translated_text = self.tokenizer.decode(output[0], skip_special_tokens=True)
             logger.info(f"Translated text: {translated_text}")
             return translated_text
@@ -70,16 +61,4 @@ class MBartTranslator:
             return None
 
     def get_supported_languages(self):
-        """
-        Returns a list of supported languages for mBART with their codes.
-        """
         return list(self.tokenizer.lang_code_to_id.keys())
-
-
-# Example usage:
-# translator = MBartTranslator()
-# translated_text = translator.translate("Hello, how are you?", "en_XX", "fr_XX")
-# print(f"Translated Text: {translated_text}")
-
-# languages = translator.get_supported_languages()
-# print("Supported languages:", languages)
