@@ -3,9 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, storage, firestore
 
 cred = credentials.Certificate("firebase-adminsdk.json")
-firebase_admin.initialize_app(
-    cred, {"storageBucket": "react-livechat-ff02b.appspot.com"}
-)
+firebase_admin.initialize_app(cred, {"storageBucket": "rebeldot-7a26b.appspot.com"})
 
 bucket = storage.bucket()
 
@@ -35,15 +33,14 @@ def download_audio_from_url(url, save_path):
 
 
 def save_audio_metadata_to_firestore(
-    audio_url, created_at, receiver_id, sender_id, text, translated_text, chat_id
+    audio_url, translated_audio_url, created_at, receiver_id, sender_id, chat_id
 ):
     audio_message = {
         "audio": audio_url,
+        "translated_audio": translated_audio_url,
         "createdAt": created_at,
         "receiverId": receiver_id,
         "senderId": sender_id,
-        "text": text,
-        "translatedText": translated_text,
     }
 
     chat_doc_ref = db.collection("chats").document(chat_id)

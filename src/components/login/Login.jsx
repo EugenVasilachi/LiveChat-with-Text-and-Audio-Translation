@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./login.css";
 import { toast } from "react-toastify";
 import {
@@ -8,7 +8,6 @@ import {
 import { auth, db } from "../../lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import upload from "../../lib/upload";
-import axios from "axios";
 
 export default function Login() {
   const [avatar, setAvatar] = useState({
@@ -16,8 +15,8 @@ export default function Login() {
     url: "",
   });
   const [loading, setLoading] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(""); // State for selected language
-  const [isRegistering, setIsRegistering] = useState(false); // Toggle between Sign In and Sign Up
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const languages = [
     { code: "en_XX", name: "English" },
@@ -30,7 +29,7 @@ export default function Login() {
   ];
 
   const handleLanguageChange = (e) => {
-    setSelectedLanguage(e.target.value); // Update selected language state
+    setSelectedLanguage(e.target.value);
   };
 
   const handleAvatar = (e) => {
@@ -56,7 +55,7 @@ export default function Login() {
         email,
         avatar: imgUrl,
         id: res.user.uid,
-        language: selectedLanguage, // Add selected language to Firestore
+        language: selectedLanguage,
         blocked: [],
       });
       await setDoc(doc(db, "userchats", res.user.uid), {
@@ -111,7 +110,6 @@ export default function Login() {
               <input type="text" placeholder="Email" name="email" />
               <input type="password" placeholder="Password" name="password" />
 
-              {/* Language Select Dropdown */}
               <select
                 name="language"
                 value={selectedLanguage}
@@ -123,7 +121,7 @@ export default function Login() {
                 </option>
                 {languages.map(({ code, name }) => (
                   <option key={code} value={name}>
-                    {name} {/* Display language name */}
+                    {name}
                   </option>
                 ))}
               </select>

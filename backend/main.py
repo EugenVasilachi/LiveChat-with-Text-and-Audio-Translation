@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from pathlib import Path
-from translation.wisper import speach_to_text, text_to_speach
+from translation.whisper import speech_to_text, text_to_speech
 from translation.gpt import translate_text
 from flask_cors import CORS
 from firebase_connect import (
@@ -28,38 +28,38 @@ def translate():
 
 @app.route("/translate_audio", methods=["POST"])
 def translate_audio():
-    url = request.form.get("file")
+    audio_url = request.form.get("file")
     source_lang = request.form.get("source_lang", "en")
     target_lang = request.form.get("target_lang", "ro")
     receiver_id = request.form.get("receiver_id")
     sender_id = request.form.get("sender_id")
     chat_id = request.form.get("chat_id")
 
-    if not url:
+    if not audio_url:
         return jsonify({"error": "No file URL provided"}), 400
 
     audio_file_path = Path("downloaded_audio.mp3")
-    saved_path = download_audio_from_url(url, audio_file_path)
+    saved_path = download_audio_from_url(audio_url, audio_file_path)
 
     if not saved_path:
         return jsonify({"error": "Failed to download audio file"}), 500
 
-    text = speach_to_text(saved_path)
+    text = speech_to_text(saved_path)
 
     translated_text = translate_text(text, source_lang, target_lang)
 
-    speech_file_path = text_to_speach(translated_text)
+    speech_file_path = text_to_speech(translated_text)
 
     unique_file_name = f"translated_audio_{uuid.uuid4()}.mp3"
 
-    public_url = upload_audio_to_firebase(speech_file_path, unique_file_name)
+    translated_audio_url = upload_audio_to_firebase(speech_file_path, unique_file_name)
 
     created_at = datetime.datetime.now()
     save_audio_metadata_to_firestore(
-        public_url, created_at, receiver_id, sender_id, text, translated_text, chat_id
+        audio_url, translated_audio_url, created_at, receiver_id, sender_id, chat_id
     )
 
-    return jsonify({"audio_url": public_url}), 200
+    return jsonify({"audio_url": translated_audio_url}), 200
 
 
 if __name__ == "__main__":

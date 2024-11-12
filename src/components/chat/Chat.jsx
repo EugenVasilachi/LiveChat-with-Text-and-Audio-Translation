@@ -28,8 +28,6 @@ export default function Chat() {
   const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } =
     useChatStore();
   const { currentUser } = useUserStore();
-  //const [audioFileUrl, setAudioFileUrl] = useState(null);
-  let audioFileUrl = null;
 
   const endRef = useRef(null);
 
@@ -57,6 +55,7 @@ export default function Chat() {
       });
     }
   };
+
   const handleSend = async () => {
     if (text === "" && !img.file && !audioUrl) return;
 
@@ -69,13 +68,13 @@ export default function Chat() {
 
       let messagePayload = {};
       let messageForFirestore = {};
+      let translatedText = "";
 
       if (audioUrl && currentUser) {
         const audioBlob = await fetch(audioUrl).then((r) => r.blob());
-        audioFileUrl = await uploadAudio(audioBlob);
+        const audioFileUrl = await uploadAudio(audioBlob);
 
         const formData = new FormData();
-
         formData.append("file", audioFileUrl);
         formData.append("source_lang", currentUser.language);
         formData.append("target_lang", user.language);
@@ -83,11 +82,7 @@ export default function Chat() {
         formData.append("sender_id", currentUser.id);
         formData.append("chat_id", chatId);
 
-        // Send the message to the backend for translation
-        const response = await axios.post(
-          "http://127.0.0.1:5000/translate_audio",
-          formData
-        );
+        await axios.post("http://127.0.0.1:5000/translate_audio", formData);
       } else {
         messagePayload = {
           text: text,
@@ -95,38 +90,69 @@ export default function Chat() {
           target_lang: user.language,
         };
 
-        // Send the message to the backend for translation
-        const response = await axios.post(
-          "http://127.0.0.1:5000/translate",
-          messagePayload
-        );
+        if (!imgUrl) {
+          const response = await axios.post(
+            "http://127.0.0.1:5000/translate",
+            messagePayload
+          );
+          translatedText = response.data.translated_text;
 
-        const translatedText = response.data.translated_text; // Extract the translated text
-
-        // Construct message object for Firestore
-        messageForFirestore = {
-          senderId: currentUser.id,
-          receiverId: user.id,
-          text:
-            currentUser.id === messagePayload.senderId ? translatedText : text,
-          translatedText:
-            currentUser.id === messagePayload.senderId ? text : translatedText,
-          // img: imgUrl || null,
-          // audio: audioFileUrl || null,
-          createdAt: new Date(),
-        };
+          messageForFirestore = {
+            senderId: currentUser.id,
+            receiverId: user.id,
+            text:
+              currentUser.id === messagePayload.senderId
+                ? translatedText
+                : text,
+            translatedText:
+              currentUser.id === messagePayload.senderId
+                ? text
+                : translatedText,
+            createdAt: new Date(),
+          };
+        } else {
+          messageForFirestore = {
+            senderId: currentUser.id,
+            receiverId: user.id,
+            img: imgUrl,
+            createdAt: new Date(),
+          };
+        }
       }
 
-      // Update Firestore with the new message
       if (!audioUrl) {
         await updateDoc(doc(db, "chats", chatId), {
           messages: arrayUnion(messageForFirestore),
         });
       }
 
-      const userIDs = [currentUser.id, user.id];
+      await updateUserChatMetadata(
+        currentUser.id,
+        user.id,
+        chatId,
+        text,
+        translatedText
+      );
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setImg({ file: null, url: "" });
+      setText("");
+      setAudioUrl(null);
+    }
+  };
 
-      userIDs.forEach(async (id) => {
+  const updateUserChatMetadata = async (
+    currentUserId,
+    receiverId,
+    chatId,
+    text,
+    translatedText
+  ) => {
+    const userIDs = [currentUserId, receiverId];
+
+    await Promise.all(
+      userIDs.map(async (id) => {
         const userChatsRef = doc(db, "userchats", id);
         const userChatsSnapshot = await getDoc(userChatsRef);
 
@@ -135,12 +161,13 @@ export default function Chat() {
           const chatIndex = userChatsData.chats.findIndex(
             (c) => c.chatId === chatId
           );
+
           if (chatIndex !== -1) {
-            userChatsData.chats[chatIndex].lastMessage =
-              currentUser.id === messagePayload.senderId
-                ? text
-                : translatedText; // Last message for chat overview
-            userChatsData.chats[chatIndex].isSeen = id === currentUser.id;
+            const isCurrentUser = id === currentUserId;
+            userChatsData.chats[chatIndex].lastMessage = isCurrentUser
+              ? text
+              : translatedText;
+            userChatsData.chats[chatIndex].isSeen = isCurrentUser;
             userChatsData.chats[chatIndex].updatedAt = Date.now();
 
             await updateDoc(userChatsRef, {
@@ -148,18 +175,10 @@ export default function Chat() {
             });
           }
         }
-      });
-    } catch (error) {
-      console.error("Error sending message:", error);
-    } finally {
-      // Reset image and text after sending the message
-      setImg({ file: null, url: "" });
-      setText("");
-      setAudioUrl(null);
-    }
+      })
+    );
   };
 
-  // Audio Recording Functions
   const startRecording = async () => {
     audioChunksRef.current = [];
     setRecording(true);
@@ -195,84 +214,82 @@ export default function Chat() {
   };
 
   return (
-    <div className='chat'>
-      <div className='top'>
-        <div className='user'>
-          <img src={user?.avatar || "./avatar.png"} alt='' />
-          <div className='texts'>
+    <div className="chat">
+      <div className="top">
+        <div className="user">
+          <img src={user?.avatar || "./avatar.png"} alt="" />
+          <div className="texts">
             <span>{user?.username}</span>
             <p>online</p>
           </div>
         </div>
-        <div className='icons'>
-          <img src='./phone.png' alt='' />
-          <img src='./video.png' alt='' />
-          <img src='./info.png' alt='' />
+        <div className="icons">
+          <img src="./phone.png" alt="" />
+          <img src="./video.png" alt="" />
+          <img src="./info.png" alt="" />
         </div>
       </div>
-      <div className='center'>
+      <div className="center">
         {chat?.messages?.map((message) => (
           <div
             className={
               message.senderId === currentUser?.id ? "message own" : "message"
             }
-            key={message?.createdAt}>
-            <div className='texts'>
-              {message.img && <img src={message.img} alt='messageImage' />}
-              <p>
-                {message.senderId === currentUser.id
-                  ? message.text
-                  : message.translatedText}
-              </p>
+            key={message?.createdAt}
+          >
+            <div className="texts">
+              {message.img && <img src={message.img} alt="messageImage" />}
+              {message.text && (
+                <p>
+                  {message.senderId === currentUser.id
+                    ? message.text
+                    : message.translatedText}
+                </p>
+              )}
               {message.audio && message.senderId === currentUser.id && (
-                <audio controls src={audioFileUrl}>
+                <audio controls src={message.audio}>
                   Your browser does not support the audio element.
                 </audio>
               )}
               {message.audio && message.senderId === user.id && (
-                <audio controls src={message.audio}>
+                <audio controls src={message.translated_audio}>
                   Your browser does not support the audio element.
                 </audio>
               )}
-              {/* {message.audio && (
-                <audio controls src={message.audio}>
-                  Your browser does not support the audio element.
-                </audio>
-              )} */}
             </div>
           </div>
         ))}
 
         {img.url && (
-          <div className='message own'>
-            <div className='texts'>
-              <img src={img.url} alt='' />
+          <div className="message own">
+            <div className="texts">
+              <img src={img.url} alt="" />
             </div>
           </div>
         )}
         <div ref={endRef}></div>
       </div>
-      <div className='bottom'>
-        <div className='icons'>
-          <label htmlFor='file'>
-            <img src='./img.png' alt='' />
+      <div className="bottom">
+        <div className="icons">
+          <label htmlFor="file">
+            <img src="./img.png" alt="" />
           </label>
           <input
-            type='file'
-            id='file'
+            type="file"
+            id="file"
             style={{ display: "none" }}
             onChange={handleImage}
           />
-          <img src='./camera.png' alt='' />
+          <img src="./camera.png" alt="" />
           <img
             src={recording ? "./red-mic.png" : "./mic.png"}
-            alt=''
+            alt=""
             onClick={recording ? stopRecording : startRecording}
             className={recording ? "recording" : ""}
           />
         </div>
         <input
-          type='text'
+          type="text"
           placeholder={
             isCurrentUserBlocked || isReceiverBlocked
               ? "You cannot send a message"
@@ -282,16 +299,17 @@ export default function Chat() {
           onChange={(e) => setText(e.target.value)}
           disabled={isCurrentUserBlocked || isReceiverBlocked}
         />
-        <div className='emoji'>
-          <img src='./emoji.png' alt='' onClick={() => setOpen(!open)} />
-          <div className='picker'>
+        <div className="emoji">
+          <img src="./emoji.png" alt="" onClick={() => setOpen(!open)} />
+          <div className="picker">
             <EmojiPicker open={open} onEmojiClick={handleEmoji} />
           </div>
         </div>
         <button
-          className='sendButton'
+          className="sendButton"
           onClick={handleSend}
-          disabled={isCurrentUserBlocked || isReceiverBlocked}>
+          disabled={isCurrentUserBlocked || isReceiverBlocked}
+        >
           Send
         </button>
       </div>

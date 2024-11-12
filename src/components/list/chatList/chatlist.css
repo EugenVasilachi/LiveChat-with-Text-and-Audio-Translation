@@ -76,4 +76,5 @@ button.logout {
   border-radius: 5px;
   background-color: #1a73e8;
   margin-top: 10px;
+  cursor: pointer;
 }

@@ -6,15 +6,14 @@ import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useChatStore } from "../../../lib/chatStore";
 import { auth } from "../../../lib/firebase";
+
 export default function ChatList() {
-  const [chats, setChats] = useState([]); // Initialize state with useState
+  const [chats, setChats] = useState([]);
   const [addMode, setAddMode] = useState(false);
-  const [input, setInput] = useState(""); // Input for filtering chats
+  const [input, setInput] = useState("");
 
   const { currentUser } = useUserStore();
   const { chatId, changeChat } = useChatStore();
-
-  console.log(chatId);
 
   useEffect(() => {
     const unSub = onSnapshot(
@@ -39,7 +38,6 @@ export default function ChatList() {
     };
   }, [currentUser.id]);
 
-  // Select chat and mark it as seen
   const handleSelect = async (chat) => {
     const userChats = chats.map((item) => {
       const { user, ...rest } = item;
@@ -62,50 +60,50 @@ export default function ChatList() {
     }
   };
 
-  // Filtering logic for chats based on search input
   const filteredChats = chats.filter((c) =>
     c.user.username.toLowerCase().includes(input.toLowerCase())
   );
 
   return (
-    <div className='chatList'>
-      <div className='search'>
-        <div className='searchBar'>
-          <img src='/search.png' alt='search icon' />
+    <div className="chatList">
+      <div className="search">
+        <div className="searchBar">
+          <img src="/search.png" alt="search icon" />
           <input
-            type='text'
-            placeholder='Search'
-            value={input} // Bind the input value to the state
-            onChange={(e) => setInput(e.target.value)} // Update the input state
+            type="text"
+            placeholder="Search"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
           />
         </div>
         <img
           src={addMode ? "./minus.png" : "./plus.png"}
-          alt='toggle add mode'
+          alt="toggle add mode"
           onClick={() => setAddMode(!addMode)}
-          className='add'
+          className="add"
         />
       </div>
 
-      <div className='chatItems'>
+      <div className="chatItems">
         {filteredChats.map((chat) => {
           return (
             <div
-              className='item'
+              className="item"
               key={chat.chatId}
               onClick={() => handleSelect(chat)}
               style={{
                 backgroundColor: chat?.isSeen ? "transparent" : "#5183fe",
-              }}>
+              }}
+            >
               <img
                 src={
                   chat.user.blocked.includes(currentUser.id)
                     ? "./avatar.png"
                     : chat.user.avatar || "./avatar.png"
                 }
-                alt=''
+                alt=""
               />
-              <div className='texts'>
+              <div className="texts">
                 <span>
                   {chat.user.blocked.includes(currentUser.id)
                     ? "User"
@@ -119,12 +117,13 @@ export default function ChatList() {
       </div>
 
       <button
-        className='logout'
+        className="logout"
         onClick={() =>
           auth.signOut().then(() => {
             window.location.reload();
           })
-        }>
+        }
+      >
         Logout
       </button>
 

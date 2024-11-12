@@ -37,6 +37,8 @@ const AddUser = () => {
   };
 
   const handleAdd = async () => {
+    if (!user) return;
+
     const chatRef = collection(db, "chats");
     const userChatsRef = collection(db, "userchats");
 
@@ -68,15 +70,15 @@ const AddUser = () => {
   };
 
   return (
-    <div className='addUser'>
+    <div className="addUser">
       <form onSubmit={handleSearch}>
-        <input type='text' placeholder='Username' name='username' />
+        <input type="text" placeholder="Username" name="username" />
         <button>Search</button>
       </form>
       {user && (
-        <div className='user'>
-          <div className='detail'>
-            <img src={user.avatar || "./avatar.png"} alt='' />
+        <div className="user">
+          <div className="detail">
+            <img src={user.avatar || "./avatar.png"} alt="" />
             <span>{user.username}</span>
           </div>
           <button onClick={handleAdd}>Add User</button>

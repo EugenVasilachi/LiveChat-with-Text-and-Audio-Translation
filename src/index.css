@@ -23,8 +23,8 @@ body {
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.125);
   display: flex;
-  overflow: hidden; /* Hide both x and y scrollbars */
-  position: relative; /* Optional, for layout control */
+  overflow: hidden;
+  position: relative;
 }
 
 .loading {
