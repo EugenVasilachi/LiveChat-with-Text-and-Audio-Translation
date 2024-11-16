@@ -2,10 +2,10 @@
 
 This app enables real-time audio message translation using OpenAI’s ChatGPT for text translation, Whisper for speech-to-text and text-to-speech Firebase for storing and retrieving audio files, and a React frontend for user interaction.
 
-![chat](./public/chat.png)
-![chat1](./public/chat1.png)
+![chat](./frontend/public/chat.png)
+![chat1](./frontend/public/chat1.png)
 
-![signup](./public/signup.png)
+![signup](./frontend/public/signup.png)
 
 ## Features
 
