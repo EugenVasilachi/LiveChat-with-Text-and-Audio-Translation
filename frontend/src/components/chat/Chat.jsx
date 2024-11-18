@@ -15,6 +15,8 @@ import upload from "../../lib/upload";
 import uploadAudio from "../../lib/uploadAudio";
 import axios from "axios";
 
+const FLASK_BACKEND_URL = import.meta.env.VITE_FLASK_BACKEND_URL;
+
 export default function Chat() {
   const [open, setOpen] = useState(false);
   const [chat, setChat] = useState();
@@ -82,7 +84,7 @@ export default function Chat() {
         formData.append("sender_id", currentUser.id);
         formData.append("chat_id", chatId);
 
-        await axios.post("http://127.0.0.1:5000/translate_audio", formData);
+        await axios.post(`${FLASK_BACKEND_URL}/translate_audio`, formData);
       } else {
         messagePayload = {
           text: text,
@@ -92,7 +94,7 @@ export default function Chat() {
 
         if (!imgUrl) {
           const response = await axios.post(
-            "http://127.0.0.1:5000/translate",
+            `${FLASK_BACKEND_URL}/translate`,
             messagePayload
           );
           translatedText = response.data.translated_text;
